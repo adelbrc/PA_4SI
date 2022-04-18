@@ -1,1 +1,14 @@
-# PA_4SI
+# Projet Annuel 4SI2
+
+Etude d'une attaque ciblant les entités françaises dans le secteur du batiment et de l'immobilier ainsi que des institutions gouvernementales et utilisant une backdoor appelée "Serpent" en référence à la mascotte du langage de programmation Python.
+
+**Auteurs :**
+
+* Adel BOUARICHA
+* Narek KHATCHATRIAN
+
+## A propos
+
+Ce dépôt est une reproduction de l'attaque comprenant les scripts et TTPs (techniques, tactiques et procédures) qui ont déjà été analysés par la société **ProofPoint**.
+
+Cette reproduction est accompagnée d'une analyse forensique ainsi que d'un ensemble de  
