@@ -1,4 +1,4 @@
-$InstallDir='C:\Users\Public\Chocolatey'
+$InstallDir="$env:public\Chocolatey"
 $env:ChocolateyInstall="$InstallDir"
 
 Set-ExecutionPolicy Bypass -Scope Process -Force;
