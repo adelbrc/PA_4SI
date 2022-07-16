@@ -36,7 +36,6 @@ def run_cmd(cmd):
 	cmd_split = cmd.split('--')
 	if cmd_split[1] == hostname:
 		cmd = cmd_split[2]
-		print(cmd)
 		run = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT)#.decode()
 		out = run.stdout.read()
 		if not out:

