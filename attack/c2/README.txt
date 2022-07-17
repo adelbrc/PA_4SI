@@ -3,5 +3,6 @@
 
 2) Pour lancer le serveur
 > export FLASK_APP=c2
-> flask run
+> flask run --eager-loading --host=0.0.0.0
+(host 0.0.0.0 pour le mettre sur toutes les interfaces, donc accessible via l'host)
 

