@@ -9,8 +9,8 @@ from colorama import *
 
 # cmd_url_order = 'http://mhocujuh3h6fek7k4efpxo5teyigezqkpixkbvc2mzaaprmusze6icqd.onion.pet/index.html'
 # cmd_url_answer = 'http://ggfwk7yj5hus3ujdls5bjza4apkpfw5bjqbq4j6rixlogylr5x67dmid.onion.pet/index.html'
-cmd_url_order = 'http://192.168.1.64:5000/'
-cmd_url_answer = 'http://192.168.1.64:5000/answer'
+cmd_url_order = 'http://192.168.1.24:5000/'
+cmd_url_answer = 'http://192.168.1.24:5000/answer'
 hostname = socket.gethostname()
 hostname_pattern = 'host:%s-00' % hostname
 headers = {}

