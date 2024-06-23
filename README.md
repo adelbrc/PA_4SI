@@ -14,4 +14,4 @@ Ce dépôt est une reproduction de l'attaque comprenant les scripts et TTPs (tec
 Cette reproduction est accompagnée d'une analyse forensique ainsi que d'un ensemble de mesures de défense.
 
 ## Démonstration vidéo de la phase de Command and Control :
-![]("C2 - Demo.mp4")
+![](C2 - Demo.mp4)
