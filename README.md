@@ -12,3 +12,6 @@ Etude d'une attaque ciblant les entités françaises dans le secteur du batiment
 Ce dépôt est une reproduction de l'attaque comprenant les scripts et TTPs (techniques, tactiques et procédures) qui ont déjà été analysés par la société **ProofPoint**.
 
 Cette reproduction est accompagnée d'une analyse forensique ainsi que d'un ensemble de mesures de défense.
+
+## Démonstration vidéo de la phase de Command and Control :
+![]("C2 - Demo.mp4")
