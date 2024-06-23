@@ -41,3 +41,9 @@ Replace client's server IP placeholder with yours at line 9:
 
 Launch the agent in order to simulate infection:
 > python3 client.py
+
+**Step 3: Send commands**
+Navigate to the web dashboard, select the target host and issue a command.
+You should receive a link to the result in a few moments.
+
+✨ PoC Successful!
