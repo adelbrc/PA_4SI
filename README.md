@@ -15,3 +15,4 @@ Cette reproduction est accompagnée d'une analyse forensique ainsi que d'un ense
 
 ## Démonstration vidéo de la phase de Command and Control :
 ![](c2_demo.mp4)
+
